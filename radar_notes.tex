@@ -1,0 +1,335 @@
+\documentclass{article}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%% Formatting Stuff %%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\setlength{\parskip}{1em}\setlength{\parindent}{0pt}
+\linespread{1.25}
+\usepackage[margin=0.7in,top=1in]{geometry}\usepackage{fancyhdr}
+\newcommand{\info}{\clearpage \subsection*{Information}}
+\newcommand{\solution}[1]{\clearpage \subsection*{Solution #1}}
+\newcommand{\spart}[1]{\paragraph{(#1)}}
+\newcommand{\sspart}[1]{\subparagraph{(#1)}}
+
+% increase vertical spacing for matrices
+%\makeatletter
+%\renewcommand*\env@matrix[1][\arraystretch]{%
+%  \edef\arraystretch{#1}%
+%  \hskip -\arraycolsep
+%  \let\@ifnextchar\new@ifnextchar
+%  \array{*\c@MaxMatrixCols c}}
+%\makeatother
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%% Add any more packages if you want to
+\usepackage{amsmath}
+% \usepackage{physics}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{outlines}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{nameref}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{environ}
+\usepackage{graphicx} 
+\usepackage{enumitem}
+\usepackage{scalerel}
+\usepackage{bm}
+\usepackage{csvsimple}
+\setlist[description]{leftmargin=\parindent,labelindent=\parindent}
+
+% custom definitions
+% New command to make a transpose symbol.
+% The normal method places the Transpose a bit too low, so this % method places it a bit higher.
+
+\makeatletter
+\newcommand*{\transpose}{%
+  {\mathpalette\@transpose{}}%
+}
+\newcommand*{\@transpose}[2]{%
+  % #1: math style
+  % #2: unused
+  \raisebox{\depth}{$\m@th#1\intercal$}%
+}
+
+\newcommand{\problem}[1]{\clearpage \subsection*{\textbf{Problem #1}}}
+
+
+% new commands for matrix formatting
+% \newcommand*{\matr}[1]{\mathbfit{#1}}
+\newcommand*{\matr}[1]{\mathbf{#1}}
+\newcommand*{\tran}{^{\mkern-1.5mu\mathsf{T}}}
+\newcommand*{\conj}[1]{\overline{#1}}
+\newcommand*{\hermconj}{^{\mathsf{H}}}
+
+% new commands for probability notations
+\newcommand\iid{$i.i.d.$}
+\newcommand\pN{\mathcal{N}}
+% \iid~$X \sim \pN(\mu, \sigma^2)$
+
+% misc math commands
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax} 
+
+
+
+\begin{document}
+
+
+%%%%% Main Body goes here
+% Example
+
+% \problem{1}
+% \spart{a}
+
+
+% \begin{figure*}[!h]
+%   \centering
+%   {\includegraphics[scale=0.35]{grid_rewards_4x4.png}\label{fig:f1}}
+%   \caption{Initial 4x4 Grid Rewards}
+% \end{figure*}
+
+% \newpage
+
+
+% \begin{itemize}[topsep=2pt,itemsep=2pt,partopsep=2pt, parsep=2pt]
+% 	\item $\epsilon = 1e-6$ 
+% 	\item Stopping Criteria: if $max\lbrace 0, \sum v_{\pi_t} - v_{\pi_{t-1}} \rbrace < \epsilon$, then break
+% 	\item $\gamma = 0.7$
+% 	\item Initialize $v_{\pi} = 0_{4 x 4}$
+% 	\item Initialize $Pi$ as an empty 4x4 matrix
+% \end{itemize}
+
+\section{Snapshot Model}
+
+\begin{align*}
+	x(t) = v(\theta) f(t) + n(t)
+	\\
+	\\
+	\\
+	X = V F + N
+	\\
+	\\
+	\\
+	X = X_s + N
+\end{align*}
+
+
+\begin{itemize}
+	\item x - (Nx1) \text{ Received signal vector at time } t
+	
+	\item v - (NxD) \text{ Matrix of Steering Vectors }
+	
+	\item f(t) - (Dx1) \text{ Zero Mean Random Vector that contains desired } \\ \text{ and possibly undesired signals (D signals in total) }
+
+	\item n(t) - (Nx1) \text{ Complex Additive White Gaussian Noise }
+	
+\end{itemize}
+
+\begin{itemize}
+	\item X - (NxT) \text{ Full Signal as received by the Array }
+	
+	\item V - (NxD) \text{ Matrix of Steering Vectors }
+	
+	\item F - (DxT) \text{ Zero Mean Random Vector that contains desired } \\ \text{ and possibly undesired signals (D signals in total) }
+
+	\item N - (NxT) \text{ Complex Additive White Gaussian Noise }
+	
+\end{itemize}
+
+
+\newpage
+
+
+\section{Bartlett Beamforming}
+
+\begin{align*}
+	y = w^\mathsf{H} X
+	\\
+	\\
+	y = v^\mathsf{H}(\theta_s) X
+	\\
+	f = y = v^\mathsf{H}(\theta_s) X
+	\\
+	\mathcal{P} = \frac{1}{T} \sum_{t=0}^{T-1} | v^\mathsf{H}(\theta_s) x(t) | ^2
+	\\
+	\\
+\end{align*}
+
+
+\begin{align*}
+	\mathcal{P} &= Var(f)
+	\\
+	&= E[(f - \mu_f)^2]
+	\\
+	&= E[f^2] \qquad\qquad\qquad\qquad \text{ zero mean signal }
+	\\
+	&= E[|v^\mathsf{H}(\theta_s) X|^2] \qquad\qquad\, \text{ ideal Beamformer }
+	\\
+	&= \frac{1}{T} \sum_{t=0}^{T-1} |v^\mathsf{H}(\theta_s) x(t)|^2
+\end{align*}
+
+
+
+\begin{align*}
+	\mathcal{P} &= \frac{1}{T} \sum_{t=0}^{T-1} | v^\mathsf{H}(\theta) x(t) | ^2
+	\\
+	&= \frac{1}{T} \sum_{t=0}^{T-1} ( v^\mathsf{H} x(t))(v^\mathsf{H} x(t))^\mathsf{H}
+	\\
+	&= \frac{1}{T} \sum_{t=0}^{T-1}  v^\mathsf{H} x(t) x^\mathsf{H}(t) v_s
+	\\
+	&= v^\mathsf{H} \left( \frac{1}{T} \sum_{t=0}^{T-1} x(t) x^\mathsf{H}(t) \right) v 
+	\\
+	&= v^\mathsf{H} E[X X^\mathsf{H}] v 
+	\\
+	\mathcal{P}_B &= v^\mathsf{H} R_{XX} v
+	\\
+\end{align*}
+
+\newpage
+
+
+\section{Capon Beamformer}
+
+\begin{align*}
+	\hat{y} = w^\mathsf{H} X
+	\\
+	\hat{y} = f
+	\\
+	v^\mathsf{H}(\theta_s) w = 1
+	\\
+	f = y = v^\mathsf{H}(\theta_s) X
+	\\
+	\mathcal{P} = \frac{1}{T} \sum_{t=0}^{T-1} | v^\mathsf{H}(\theta_s) x(t) | ^2
+	\\
+	\\
+\end{align*}
+
+\begin{align*}
+	\hat{y} &= w^\mathsf{H} X
+	\\
+	&= w^\mathsf{H} (X_s + N)
+	\\
+	&= w^\mathsf{H} X_s + w^\mathsf{H} N
+	\\
+	&= f + w^\mathsf{H} N \qquad\qquad \text{ Distortionaless Response }
+	\\
+	\hat{y} &= f + Y_n
+\end{align*}
+
+
+\begin{align*}
+	Var(\hat{y}) &= E[|\hat{y}|^2] + E[\hat{y}]^2
+	\\
+	&= E[|\hat{y}|^2] + E[f + Y_n]^2
+	\\
+	&= E[|\hat{y}|^2] + (E[f] + E[Y_n])^2 \qquad\qquad \text{ both $f$ and $Y_n$ are zero mean }
+	\\
+	&= E[|\hat{y}|^2] + 0
+	\\
+	&= E[|w^\mathsf{H} X|^2]
+	\\
+	&= E[(w^\mathsf{H} X)(w^\mathsf{H} X)^\mathsf{H}]
+	\\
+	&= E[w^\mathsf{H} X X^\mathsf{H} w]
+	\\
+	&= w^\mathsf{H} E[X X^\mathsf{H}] w
+	\\
+	&= w^\mathsf{H} \left( \frac{1}{T} \sum_{t=0}^{T-1} x(t) x(t)^\mathsf{H} \right) w
+	\\
+	&= w^\mathsf{H} R_{XX} w
+\end{align*}
+
+
+\begin{align*}
+	\text{ Minimize } w^\mathsf{H} R_{XX} w \\
+	\text{subject to} : w^\mathsf{H}v_s  = 1
+	\\
+	\\
+	\text{first construct the objective function}
+	\\
+	\mathcal{L} = w^\mathsf{H} R_{XX} w + \text{Re} [\lambda (w^\mathsf{H}v_s - 1)]
+\end{align*}
+
+
+\begin{align*}
+	\mathcal{L} &= w^\mathsf{H} R_{XX} w + \text{Re} [\lambda (w^\mathsf{H}v_s - 1)]
+	\\
+	&= w^\mathsf{H} R_{XX} w + \frac{\lambda}{2} (w^\mathsf{H}v_s - 1) + \left[ \frac{\lambda}{2} (w^\mathsf{H}v_s - 1) \right]^*
+	\\
+	&= w^\mathsf{H} R_{XX} w + \frac{\lambda}{2} (w^\mathsf{H}v_s - 1) + \frac{\lambda}{2}^* (w^\mathsf{T}v_s^* - 1)
+	\\
+	&= w^\mathsf{H} R_{XX} w + \frac{\lambda}{2} (w^\mathsf{H}v_s - 1) + \frac{\lambda}{2}^* (v_s^\mathsf{H} w - 1)
+\end{align*}
+
+
+\begin{align*}
+	\mathcal{L} = w^\mathsf{H} R_{XX} w + \frac{\lambda}{2} (w^\mathsf{H}v_s - 1) + &\frac{\lambda}{2}^* (v_s^\mathsf{H} w - 1)
+	\\
+	\frac{\partial \mathcal{L}}{\partial w^\mathsf{H}} = R_{XX} w + \frac{\lambda}{2} v_s &= 0
+	\\
+	R_{XX} w &= - \frac{\lambda}{2} v_s 
+	\\
+	w &= - \frac{\lambda}{2} R_{XX}^{-1} v_s 
+	\\
+\end{align*}
+
+
+\begin{align*}
+	w^\mathsf{H}v_s = v_s^\mathsf{H}w &= 1
+	\\
+	v_s^\mathsf{H}w = - \frac{\lambda}{2} v_s^\mathsf{H} R_{XX}^{-1} v_s &= 1
+	\\
+	 - \frac{\lambda}{2} &= (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1}
+\end{align*}
+
+\begin{align*}
+	w_{mvdr} &= (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} R_{XX}^{-1} v_s 
+\end{align*}
+
+OLD
+\begin{align*}
+	w_{mvdr} &= (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} R_{XX}^{-1} v_s 
+	\\
+	\mathcal{P} &= \frac{1}{T} \sum_{t=0}^{T-1} | w^\mathsf{H} x(t) | ^2
+	\\
+	&= \frac{1}{T} \sum_{t=0}^{T-1} | (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} v_s ^\mathsf{H} R_{XX}^{-1}  x(t) | ^2
+	\\
+	&= \left| (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} \right| ^ 2 (v_s ^\mathsf{H} R_{XX}^{-1} ) \frac{1}{T} \sum_{t=0}^{T-1}  | x(t) | ^2 (R_{XX}^{-1}v_s)
+	\\
+	&= \left| (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} \right| ^ 2 ( v_s ^\mathsf{H} R_{XX}^{-1} ) R_{XX} (R_{XX}^{-1}v_s)
+	\\
+	&= \left| (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} \right| ^ 2  v_s ^\mathsf{H} R_{XX}^{-1}v_s
+	\\
+	\mathcal{P}_{mvdr} &= (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} 
+\end{align*}
+
+NEW
+\begin{align*}
+	w_{mvdr} &= (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} R_{XX}^{-1} v_s 
+	\\
+	\mathcal{P} &= \frac{1}{T} \sum_{t=0}^{T-1} | w^\mathsf{H} x(t) | ^2
+	\\
+	&= \frac{1}{T} \sum_{t=0}^{T-1} | (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} v_s ^\mathsf{H} R_{XX}^{-1}  x(t) | ^2
+	\\
+	&= \left| (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} \right| ^ 2 \frac{1}{T} \sum_{t=0}^{T-1} | ( v_s ^\mathsf{H} R_{XX}^{-1}  x(t) | ^2
+	\\
+	&= \left| (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} \right| ^ 2 ( v_s ^\mathsf{H} R_{XX}^{-1} R_{XX} | ^2
+\end{align*}
+
+NEW
+\begin{align*}
+	\mathcal{P}_{mvdr} &= (v_s^\mathsf{H} R_{XX}^{-1} v_s)^{-1} 
+\end{align*}
+
+\end{document}
