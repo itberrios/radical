@@ -1,6 +1,11 @@
 # custom ignores
 *.h5
 *.hdf5
+*.avi
+*.mp4
+*.gz
+*.aux
+*.log
 
 
 # Byte-compiled / optimized / DLL files
